@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	connUrl   string = "amqp://ajay:ajay@13.232.108.179:5672/"
+	connUrl   string = ""
 	queueName string = "myqueue"
 )
 
@@ -25,27 +25,18 @@ func main() {
 
 	mq := rabbitmq.NewRabbitmqClient(connUrl)
 
-	messages := []rabbitmq.Message{
-		{Data: "1"},
-		{Data: "2"},
-		{Data: "3"},
-		{Data: "4"},
-		{Data: "5"},
-		{Data: "6"},
-		{Data: "7"},
-		{Data: "8"},
-		{Data: "9"},
-		{Data: "10"},
-	}
-	mq.OpenQueue(queueName)
+	mq.QueueDeclare(queueName)
 	//
 	consume, err := mq.Consume()
 	utils.PanicIfError(err, "Unable to consume messages")
 	//
-	rabbitmq.PublishMessages(mq, messages)
 	//
-	time.Sleep(10 * time.Second)
-	go rabbitmq.ConsumeMessages(consume)
+	go func() {
+
+		for msg := range consume {
+			//
+		}
+	}()
 	//
 	//
 	<-done
