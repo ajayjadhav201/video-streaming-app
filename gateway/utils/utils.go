@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -16,6 +17,9 @@ type Response struct {
 
 func WriteJson(c *gin.Context, data interface{}) {
 	c.JSON(200, Response{Msgsage: "Success", Data: data})
+}
+func Error(err string) error {
+	return errors.New(err)
 }
 
 func WriteError(c *gin.Context, msg string, err error) {
@@ -98,8 +102,8 @@ func LogPanicf(format string, v ...any) {
 	log.Panicf(format, v...)
 }
 
-func Marshal(data interface{}) ([]byte, error) {
-	return json.Marshal(data)
+func Marshal(pointer interface{}) ([]byte, error) {
+	return json.Marshal(pointer)
 }
 
 func Unmarshal(data []byte, pointer interface{}) error {

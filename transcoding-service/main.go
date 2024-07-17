@@ -6,12 +6,16 @@ import (
 	"syscall"
 	"time"
 	"transcoding-service/rabbitmq"
+	"transcoding-service/transcoder"
 	"transcoding-service/utils"
+
+	"github.com/rabbitmq/amqp091-go"
 )
 
 const (
-	connUrl   string = ""
-	queueName string = "myqueue"
+	connUrl         string = ""
+	queueName       string = "transcoding_service"
+	VideoOutputPath string = "/path/to/output/"
 )
 
 func main() {
@@ -24,23 +28,44 @@ func main() {
 	}()
 
 	mq := rabbitmq.NewRabbitmqClient(connUrl)
-
 	mq.QueueDeclare(queueName)
 	//
-	consume, err := mq.Consume()
+	messages, err := mq.Consume()
 	utils.PanicIfError(err, "Unable to consume messages")
 	//
 	//
-	go func() {
-
-		for msg := range consume {
-			//
-		}
-	}()
+	go conusmeMessages(mq, messages)
 	//
 	//
 	<-done
 	time.Sleep(1 * time.Second)
 	mq.Close()
+	//
+}
+
+func conusmeMessages(client *rabbitmq.RabbitmqClient, messages <-chan amqp091.Delivery) {
+	//
+	for msg := range messages {
+		//
+		var req rabbitmq.Message
+		err := utils.Unmarshal(msg.Body, &req)
+		if err != nil {
+			utils.LogPrintln("Unable to decode message ", string(msg.Body), "error is: ", err.Error())
+			continue
+		}
+		//process the video
+		err = transcoder.TranscodeVideo(&req)
+		if err != nil {
+			utils.LogPrintln("Unable to decode message ", string(msg.Body), "error is: ", err.Error())
+			continue
+		}
+		success := rabbitmq.Response{Message: "Success", OutputPath: VideoOutputPath + req.Title}
+		data, err := utils.Marshal(&success)
+		if err != nil {
+			utils.LogPrintln("Unable to send success message ", string(msg.Body), "error is: ", err.Error())
+			continue
+		}
+		client.PublishMessage("success", data)
+	}
 	//
 }

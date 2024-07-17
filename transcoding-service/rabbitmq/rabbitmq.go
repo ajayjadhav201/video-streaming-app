@@ -40,7 +40,20 @@ func (c *RabbitmqClient) Close() {
 	c.conn.Close()
 }
 
-func (c *RabbitmqClient) OpenQueue(name string) *Queue {
+func (c *RabbitmqClient) OpenQueue(name string) error {
+	// declare a queue
+	_, err := c.channel.QueueDeclare(
+		name,
+		true,  //durable
+		false, //delete when unused
+		false, //exclusive
+		false, //no wait
+		nil,   //arguments
+	)
+	return err
+}
+
+func (c *RabbitmqClient) QueueDeclare(name string) *Queue {
 	// declare a queue
 	q, err := c.channel.QueueDeclare(
 		name,
@@ -66,15 +79,15 @@ func (c *RabbitmqClient) OpenQueue(name string) *Queue {
 	return queue
 }
 
-func (c *RabbitmqClient) PublishMessage(message []byte) error {
+func (c *RabbitmqClient) PublishMessage(queueName string, message []byte) error {
 	// Publish message
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err := c.channel.PublishWithContext(ctx,
-		"",                 //exchange
-		c.queue.queue.Name, //queueName
-		false,              //mandetory
-		false,              //immediate
+		"",        //exchange
+		queueName, //queueName
+		false,     //mandetory
+		false,     //immediate
 		amqp.Publishing{
 			// ContentType: "text/plain",
 			Body: message,
@@ -118,6 +131,6 @@ func PublishMessages(c *RabbitmqClient, messages []Message) {
 			continue
 		}
 		utils.LogPrintf("Publishing a message: %s", msg)
-		c.PublishMessage(data)
+		c.PublishMessage(c.queue.queue.Name, data)
 	}
 }

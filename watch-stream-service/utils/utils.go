@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,6 +40,10 @@ func WriteJson(c *gin.Context, data interface{}) {
 	c.JSON(200, Response{Type: "Success", Data: data})
 }
 
+func Error(err string) error {
+	return errors.New(err)
+}
+
 func WriteError(c *gin.Context, msg string, err error) {
 	if err == nil {
 		c.JSON(500, Response{Type: "Error", Data: map[string]interface{}{
@@ -54,7 +59,7 @@ func WriteError(c *gin.Context, msg string, err error) {
 func Atoi(value string, defaultValue int) int {
 	v, e := strconv.Atoi(value)
 	if e != nil {
-		return defaultValue 
+		return defaultValue
 	}
 	return v
 }
@@ -119,8 +124,8 @@ func LogPanicf(format string, v ...any) {
 	log.Panicf(format, v...)
 }
 
-func Marshal(data interface{}) ([]byte, error) {
-	return json.Marshal(data)
+func Marshal(pointer interface{}) ([]byte, error) {
+	return json.Marshal(pointer)
 }
 
 func Unmarshal(data []byte, pointer interface{}) error {

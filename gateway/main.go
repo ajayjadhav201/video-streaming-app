@@ -52,6 +52,7 @@ func main() {
 		http.HandleFunc("/api/v1/upload", proxyServer.UploadVideosProxyHandler)
 		utils.FatalIfError(http.ListenAndServe(HttpHosturl, nil), "Failed to start http server at: ", HttpHosturl)
 	}()
+	//
 	<-done
 	//
 	utils.LogPrintln("Server shut down started...")
