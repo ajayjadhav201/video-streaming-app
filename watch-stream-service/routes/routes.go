@@ -1,7 +1,11 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"watch-service/controller"
 
-func RegisterRoutes(r *gin.RouterGroup){
-	r.GET("/videos")
+	"github.com/gin-gonic/gin"
+)
+
+func RegisterRoutes(r *gin.RouterGroup) {
+	r.GET("/videos/*filepath", controller.VideoHandler)
 }

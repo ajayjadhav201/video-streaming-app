@@ -31,12 +31,11 @@ func main() {
 	server := mqtt.NewMqttServer(MqttHosturl)
 	defer server.Close()
 	go func() {
-		server.InitInlineClient()
-		//
 		utils.FatalIfError(server.Run(), "Failed to start mqtt server at: %s", MqttHosturl)
 	}()
 	//  create Mqtt inline Client
 	// if services are not available this
+	// will response back to clients
 	go func() {
 		//
 		time.Sleep(5 * time.Second)
@@ -47,11 +46,7 @@ func main() {
 	//
 	// start http server
 	proxyServer := routes.NewProxyServer(uploadUrl, watchurl)
-	go func() {
-		http.HandleFunc("/videos/", proxyServer.WatchVideosProxy)
-		http.HandleFunc("/api/v1/upload", proxyServer.UploadVideosProxyHandler)
-		utils.FatalIfError(http.ListenAndServe(HttpHosturl, nil), "Failed to start http server at: ", HttpHosturl)
-	}()
+	handleHttpRequests(proxyServer)
 	//
 	<-done
 	//
@@ -60,4 +55,12 @@ func main() {
 	time.Sleep(1 * time.Second)
 	utils.LogPrintln("Server stopped...")
 	//
+}
+
+func handleHttpRequests(proxyServer *routes.ProxyServer) {
+	go func() {
+		http.HandleFunc("/videos/", proxyServer.WatchVideosProxy)
+		http.HandleFunc("/api/v1/upload", proxyServer.UploadVideosProxyHandler)
+		utils.FatalIfError(http.ListenAndServe(HttpHosturl, nil), "Failed to start http server at: ", HttpHosturl)
+	}()
 }

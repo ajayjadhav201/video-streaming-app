@@ -7,6 +7,10 @@ import (
 	"transcoding-service/utils"
 )
 
+var (
+	nfsBaseDir string = "/mnt/nfs/hls"
+)
+
 func TranscodeVideo(message *rabbitmq.Message) error {
 	//
 	if message.VideoPath == "" {
@@ -17,8 +21,7 @@ func TranscodeVideo(message *rabbitmq.Message) error {
 }
 
 func convertToHLS(videoPath string, title string) error {
-	outputDir := "/path/to/output/"
-	cmd := exec.Command("ffmpeg", "-i", videoPath, "-codec:", "copy", "-start_number", "0", "-hls_time", "10", "-hls_list_size", "0", "-f", "hls", outputDir+title+".m3u8")
+	cmd := exec.Command("ffmpeg", "-i", videoPath, "-codec:", "copy", "-start_number", "0", "-hls_time", "10", "-hls_list_size", "0", "-f", "hls", nfsBaseDir+"/"+title+".m3u8")
 	err := cmd.Run()
 	if err != nil {
 		// log.Fatalf("Failed to convert video: %v", err)
