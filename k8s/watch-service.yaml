@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: watch-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: watch
+  template:
+    metadata:
+      labels:
+        app: watch
+    spec:
+      containers:
+      - name: watch
+        image: my-watch-service-image:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: nfs-storage
+          mountPath: /data/videos # Adjust the mountPath as needed
+      volumes:
+      - name: nfs-storage
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: watch-service
+spec:
+  selector:
+    app: watch
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: LoadBalancer

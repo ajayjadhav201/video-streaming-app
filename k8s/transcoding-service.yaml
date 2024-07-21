@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transcoding-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: transcoding
+  template:
+    metadata:
+      labels:
+        app: transcoding
+    spec:
+      containers:
+      - name: transcoding
+        image: my-transcoding-service-image:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: nfs-storage
+          mountPath: /data/transcoding # Adjust the mountPath as needed
+      volumes:
+      - name: nfs-storage
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transcoding-service
+spec:
+  selector:
+    app: transcoding
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
